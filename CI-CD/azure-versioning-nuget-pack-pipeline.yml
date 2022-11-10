@@ -6,6 +6,7 @@
 # the build will trigger on any changes to the master branch
 trigger:
 - master
+- main
 - releases/*
 - hotfix/*
 - development
