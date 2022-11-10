@@ -1,0 +1,73 @@
+﻿# ASP.NET Core
+# Build and test ASP.NET Core projects targeting .NET Core.
+# Add steps that run tests, create a NuGet package, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+
+# the build will trigger on any changes to the master branch
+trigger:
+- master
+- releases/*
+- hotfix/*
+- development
+
+variables:
+  projectName: 'MicroEnvironment/MicroEnvironment.csproj'
+  gitVersionConfigFilePath: 'CI-CD/gitversion.yml'
+  buildConfiguration: 'Release'
+  GitVersion.SemVer: ''
+
+steps:
+- checkout: self
+  persistCredentials: true 
+
+- task: gittools.gittools.setup-gitversion-task.gitversion/setup@0 
+  displayName: gitversion/setup
+  inputs: 
+    versionSpec: 5
+
+- task: gittools.gittools.execute-gitversion-task.gitversion/execute@0
+  displayName: gitversion/execute
+  inputs:
+    useConfigFile: true
+    configFilePath: $(gitVersionConfigFilePath)
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet build'
+  inputs:
+    command: 'build'
+    arguments: '--configuration $(buildConfiguration) --force'
+    projects: '$(projectName)'
+    configuration: '$(buildConfiguration)'
+    versioningScheme: byEnvVar
+    versionEnvVar: 'GitVersion.SemVer'
+
+- task: DotNetCoreCLI@2
+  displayName: "dotnet pack"
+  inputs: 
+    command: 'pack'
+    arguments: '--configuration $(buildConfiguration)'
+    packagesToPack: '$(projectName)'
+    nobuild: true
+    versioningScheme: byEnvVar
+    versionEnvVar: 'GitVersion.SemVer'
+
+- script: |
+    git config --global user.email "azuredevops@theuniversalcity.com"
+    git config --global user.name "Azure Devops"
+
+    if git show-ref --tags tag1 --quiet; then
+        echo "$(GitVersion.NugetVersionV2) tag already exists" 
+    else 
+        git tag -a $(GitVersion.NugetVersionV2) -m "Branch => $(GitVersion.BranchName)"
+        git push origin --tags
+    fi
+  workingDirectory: $(Build.SourcesDirectory)
+
+- task: NuGetCommand@2
+  inputs:
+    command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+    nuGetFeedType: 'external'
+    publishFeedCredentials: 'theuniversalcity'
+
+#### Rest of pipeline ##
