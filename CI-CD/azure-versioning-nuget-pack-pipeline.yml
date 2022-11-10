@@ -26,6 +26,10 @@ steps:
   inputs:
     versionSpec: '5.10.1'
 
+- task: CmdLine@2
+  inputs:
+    script: 'git fetch --unshallow'
+
 - task: gittools.gittools.execute-gitversion-task.gitversion/execute@0
   displayName: gitversion/execute
   inputs:
