@@ -23,8 +23,8 @@ steps:
 
 - task: gittools.gittools.setup-gitversion-task.gitversion/setup@0 
   displayName: gitversion/setup
-  inputs: 
-    versionSpec: 5
+  inputs:
+    versionSpec: '5.10.1'
 
 - task: gittools.gittools.execute-gitversion-task.gitversion/execute@0
   displayName: gitversion/execute
