@@ -58,13 +58,13 @@ namespace MicroEnvironment.Test
             var grupId = "Grup1";
             MessageListener<string, string> CustomerCreateListener = new MessageListener<string, string>(
                 nameof(CustomerService) + "_" + nameof(CustomerCreate),
-            new KafkaMessageHubConnector<string>(new KafkaConfig { GroupId = grupId }),
-            new KafkaMessageHubConnector<string>(new KafkaConfig { GroupId = grupId }));
+            new KafkaMessageHubConnector<string>(new KafkaConfig { BootstrapServers = "localhost:9092", GroupId = grupId }),
+            new KafkaMessageHubConnector<string>(new KafkaConfig { BootstrapServers = "localhost:9092", GroupId = grupId }));
 
             MessageListener<string, string> CustomerDeleteListener = new MessageListener<string, string>(
                 nameof(CustomerService) + "_" + nameof(CustomerDelete),
-                new KafkaMessageHubConnector<string>(new KafkaConfig { GroupId = grupId }),
-                new KafkaMessageHubConnector<string>(new KafkaConfig { GroupId = grupId }));
+                new KafkaMessageHubConnector<string>(new KafkaConfig { BootstrapServers = "localhost:9092", GroupId = grupId }),
+                new KafkaMessageHubConnector<string>(new KafkaConfig { BootstrapServers = "localhost:9092", GroupId = grupId }));
 
             CustomerCreateListener.Register(CustomerCreate);
             CustomerDeleteListener.Register(CustomerDelete);

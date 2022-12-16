@@ -1,8 +1,10 @@
 ﻿using Confluent.Kafka;
 using MicroEnvironment.Exceptions;
 using MicroEnvironment.Messages;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Bson;
 using System;
-using System.Text.Json;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,21 +12,22 @@ namespace MicroEnvironment.HubConnectors.Kafka
 {
     public class KafkaMessageHubConnector<TMessage> : IMessageHubConnector<TMessage>, IDisposable
     {
+        private JsonSerializer Serializer { get; set; }
         private IProducer<byte[], byte[]> Producer { get; }
         private IConsumer<byte[], byte[]> Consumer { get; }
 
         public event Func<string, MicroEnvironmentMessage<TMessage>, Task> OnMessageHandle;
-
+        
         public KafkaMessageHubConnector(KafkaConfig config)
         {
             var producerConfig = new ProducerConfig
             {
                 BootstrapServers = config.BootstrapServers, // "localhost:9092",
-                Acks = (Confluent.Kafka.Acks)config.Acks,
+                Acks = (Confluent.Kafka.Acks?)config.Acks,
                 ApiVersionFallbackMs = config.ApiVersionFallbackMs,
                 ApiVersionRequest = config.ApiVersionRequest,
                 ApiVersionRequestTimeoutMs = config.ApiVersionRequestTimeoutMs,
-                BrokerAddressFamily = (Confluent.Kafka.BrokerAddressFamily)config.BrokerAddressFamily,
+                BrokerAddressFamily = (Confluent.Kafka.BrokerAddressFamily?)config.BrokerAddressFamily,
                 BrokerAddressTtl = config.BrokerAddressTtl,
                 BrokerVersionFallback = config.BrokerVersionFallback,
                 ClientId = config.ClientId,
@@ -51,11 +54,11 @@ namespace MicroEnvironment.HubConnectors.Kafka
                 SaslKerberosMinTimeBeforeRelogin = config.SaslKerberosMinTimeBeforeRelogin,
                 SaslKerberosPrincipal = config.SaslKerberosPrincipal,
                 SaslKerberosServiceName = config.SaslKerberosServiceName,
-                SaslMechanism = (Confluent.Kafka.SaslMechanism)config.SaslMechanism,
+                SaslMechanism = (Confluent.Kafka.SaslMechanism?)config.SaslMechanism,
                 SaslOauthbearerConfig = config.SaslOauthbearerConfig,
                 SaslPassword = config.SaslPassword,
                 SaslUsername = config.SaslUsername,
-                SecurityProtocol = (Confluent.Kafka.SecurityProtocol)config.SecurityProtocol,
+                SecurityProtocol = (Confluent.Kafka.SecurityProtocol?)config.SecurityProtocol,
                 SocketKeepaliveEnable = config.SocketKeepaliveEnable,
                 SocketMaxFails = config.SocketMaxFails,
                 SocketNagleDisable = config.SocketNagleDisable,
@@ -69,7 +72,7 @@ namespace MicroEnvironment.HubConnectors.Kafka
                 SslCipherSuites = config.SslCipherSuites,
                 SslCrlLocation = config.SslCrlLocation,
                 SslCurvesList = config.SslCurvesList,
-                SslEndpointIdentificationAlgorithm = (Confluent.Kafka.SslEndpointIdentificationAlgorithm)config.SslEndpointIdentificationAlgorithm,
+                SslEndpointIdentificationAlgorithm = (Confluent.Kafka.SslEndpointIdentificationAlgorithm?)config.SslEndpointIdentificationAlgorithm,
                 SslKeyLocation = config.SslKeyLocation,
                 SslKeyPassword = config.SslKeyPassword,
                 SslKeyPem = config.SslKeyPem,
@@ -90,11 +93,11 @@ namespace MicroEnvironment.HubConnectors.Kafka
                 EnableAutoCommit = true,
                 AllowAutoCreateTopics = true,
                 AutoOffsetReset = AutoOffsetReset.Earliest,
-                Acks = (Confluent.Kafka.Acks)config.Acks,
+                Acks = (Confluent.Kafka.Acks?)config.Acks,
                 ApiVersionFallbackMs = config.ApiVersionFallbackMs,
                 ApiVersionRequest = config.ApiVersionRequest,
                 ApiVersionRequestTimeoutMs = config.ApiVersionRequestTimeoutMs,
-                BrokerAddressFamily = (Confluent.Kafka.BrokerAddressFamily)config.BrokerAddressFamily,
+                BrokerAddressFamily = (Confluent.Kafka.BrokerAddressFamily?)config.BrokerAddressFamily,
                 BrokerAddressTtl = config.BrokerAddressTtl,
                 BrokerVersionFallback = config.BrokerVersionFallback,
                 ClientId = config.ClientId,
@@ -121,11 +124,11 @@ namespace MicroEnvironment.HubConnectors.Kafka
                 SaslKerberosMinTimeBeforeRelogin = config.SaslKerberosMinTimeBeforeRelogin,
                 SaslKerberosPrincipal = config.SaslKerberosPrincipal,
                 SaslKerberosServiceName = config.SaslKerberosServiceName,
-                SaslMechanism = (Confluent.Kafka.SaslMechanism)config.SaslMechanism,
+                SaslMechanism = (Confluent.Kafka.SaslMechanism?)config.SaslMechanism,
                 SaslOauthbearerConfig = config.SaslOauthbearerConfig,
                 SaslPassword = config.SaslPassword,
                 SaslUsername = config.SaslUsername,
-                SecurityProtocol = (Confluent.Kafka.SecurityProtocol)config.SecurityProtocol,
+                SecurityProtocol = (Confluent.Kafka.SecurityProtocol?)config.SecurityProtocol,
                 SocketKeepaliveEnable = config.SocketKeepaliveEnable,
                 SocketMaxFails = config.SocketMaxFails,
                 SocketNagleDisable = config.SocketNagleDisable,
@@ -139,7 +142,7 @@ namespace MicroEnvironment.HubConnectors.Kafka
                 SslCipherSuites = config.SslCipherSuites,
                 SslCrlLocation = config.SslCrlLocation,
                 SslCurvesList = config.SslCurvesList,
-                SslEndpointIdentificationAlgorithm = (Confluent.Kafka.SslEndpointIdentificationAlgorithm)config.SslEndpointIdentificationAlgorithm,
+                SslEndpointIdentificationAlgorithm = (Confluent.Kafka.SslEndpointIdentificationAlgorithm?)config.SslEndpointIdentificationAlgorithm,
                 SslKeyLocation = config.SslKeyLocation,
                 SslKeyPassword = config.SslKeyPassword,
                 SslKeyPem = config.SslKeyPem,
@@ -154,6 +157,8 @@ namespace MicroEnvironment.HubConnectors.Kafka
                 TopicMetadataRefreshSparse = config.TopicMetadataRefreshSparse
             };
 
+            Serializer = JsonSerializer.CreateDefault();
+
             Producer = new ProducerBuilder<byte[], byte[]>(producerConfig)
                 //.SetKeySerializer(new AvroSerializer<byte[]>(SchemaRegistry))
                 //.SetValueSerializer(new AvroSerializer<byte[]>(SchemaRegistry))
@@ -167,10 +172,15 @@ namespace MicroEnvironment.HubConnectors.Kafka
 
         public async Task Send(string messageName, MicroEnvironmentMessage<TMessage> message, CancellationToken cancellationToken = default)
         {
+            using var ms = new MemoryStream();
+            using BsonDataWriter writer = new BsonDataWriter(ms);
+
+            Serializer.Serialize(writer, message);
+
             var result = await Producer.ProduceAsync(messageName, new Message<byte[], byte[]>
             {
                 Key = message.MessageId.ToByteArray(),
-                Value = JsonSerializer.SerializeToUtf8Bytes(message),
+                Value = ms.ToArray(),
                 Timestamp = new Timestamp(message.Timestamp)
             });
 
@@ -208,9 +218,12 @@ namespace MicroEnvironment.HubConnectors.Kafka
                         continue;
                     }
 
+                    using var stream = new MemoryStream(consumeResult.Message.Value);
+                    using BsonDataReader reader = new BsonDataReader(stream);
+
                     await OnMessageHandle?.Invoke(
                         consumeResult.Topic,
-                        JsonSerializer.Deserialize<MicroEnvironmentMessage<TMessage>>(new Memory<byte>(consumeResult.Message.Value).Span));
+                        Serializer.Deserialize<MicroEnvironmentMessage<TMessage>>(reader));
                 }
             }, Consumer);
 

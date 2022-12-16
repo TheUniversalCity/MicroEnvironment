@@ -1,8 +1,10 @@
 ﻿using MicroEnvironment.Messages;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Bson;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
-using System.Text.Json;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,13 +13,11 @@ namespace MicroEnvironment.HubConnectors.RabbitMq
     public class RabbitMqMessageHubConnector<TMessage> : IMessageHubConnector<TMessage>, IDisposable
     {
         private readonly ConnectionFactory factory;
-
-        //public JsonSerializer Serializer { get; }
-
         private readonly IConnection conn;
         private readonly IModel channelConsumer;
         private readonly IModel channelPublisher;
         private readonly AsyncEventingBasicConsumer consumer;
+        private JsonSerializer Serializer { get; }
 
         public event Func<string, MicroEnvironmentMessage<TMessage>, Task> OnMessageHandle;
 
@@ -39,7 +39,7 @@ namespace MicroEnvironment.HubConnectors.RabbitMq
                 RequestedChannelMax = 0
             };
 
-            //this.Serializer = JsonSerializer.CreateDefault();
+            this.Serializer = JsonSerializer.CreateDefault();
 
             conn = factory.CreateConnection();
             channelConsumer = conn.CreateModel();
@@ -52,16 +52,24 @@ namespace MicroEnvironment.HubConnectors.RabbitMq
 
             consumer.Received += async (ch, ea) =>
             {
+                var body = ea.Body.ToArray();
+                using var stream = new MemoryStream(body);
+                using BsonDataReader reader = new BsonDataReader(stream);
+
                 await OnMessageHandle?.Invoke(
                     ea.Exchange + ea.RoutingKey,
-                    JsonSerializer.Deserialize<MicroEnvironmentMessage<TMessage>>(ea.Body.Span)
-                    );
+                    Serializer.Deserialize<MicroEnvironmentMessage<TMessage>>(reader));
             };
         }
 
         public Task Send(string messageName, MicroEnvironmentMessage<TMessage> message, CancellationToken cancellationToken = default)
         {
-            channelPublisher.BasicPublish("", messageName, null, JsonSerializer.SerializeToUtf8Bytes(message));
+            using var ms = new MemoryStream();
+            using BsonDataWriter writer = new BsonDataWriter(ms);
+
+            Serializer.Serialize(writer, message);
+
+            channelPublisher.BasicPublish("", messageName, null, ms.ToArray());
 
             return Task.CompletedTask;
         }

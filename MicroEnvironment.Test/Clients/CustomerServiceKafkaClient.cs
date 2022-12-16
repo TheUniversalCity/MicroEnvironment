@@ -11,13 +11,13 @@ namespace MicroEnvironment.Test
 
         private MessageSender<string, string> CustomerCreateMessageHub { get; set; } = new MessageSender<string, string>(
             QUEUE_NAME_OF_CUSTOMER_CREATE,
-            new KafkaMessageHubConnector<string>(new KafkaConfig { GroupId = "Grup1" }),
-            new KafkaMessageHubConnector<string>(new KafkaConfig { GroupId = "Grup1" }));
+            new KafkaMessageHubConnector<string>(new KafkaConfig { BootstrapServers = "localhost:9092", GroupId = "Grup1" }),
+            new KafkaMessageHubConnector<string>(new KafkaConfig { BootstrapServers = "localhost:9092", GroupId = "Grup1" }));
 
         private MessageSender<string, string> CustomerDeleteMessageHub { get; set; } = new MessageSender<string, string>(
             QUEUE_NAME_OF_CUSTOMER_DELETE,
-            new KafkaMessageHubConnector<string>(new KafkaConfig { GroupId = "Grup1" }),
-            new KafkaMessageHubConnector<string>(new KafkaConfig { GroupId = "Grup1" }));
+            new KafkaMessageHubConnector<string>(new KafkaConfig { BootstrapServers = "localhost:9092", GroupId = "Grup1" }),
+            new KafkaMessageHubConnector<string>(new KafkaConfig { BootstrapServers = "localhost:9092", GroupId = "Grup1" }));
 
         public Task<string> CustomerCreate(string message)
         {
