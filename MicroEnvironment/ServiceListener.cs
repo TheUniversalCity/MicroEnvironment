@@ -1,5 +1,6 @@
 ﻿using MicroEnvironment.Attributes;
-using MicroEnvironment.HubConnectors;
+using MicroEnvironment.HubConnectors.RabbitMq;
+using MicroEnvironment.Messages;
 using System;
 using System.Linq;
 using System.Linq.Expressions;

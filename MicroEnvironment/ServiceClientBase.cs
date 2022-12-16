@@ -1,9 +1,9 @@
-﻿using MicroEnvironment.HubConnectors;
+﻿using MicroEnvironment.HubConnectors.RabbitMq;
+using MicroEnvironment.Messages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace MicroEnvironment
@@ -11,6 +11,7 @@ namespace MicroEnvironment
     public abstract class ServiceClientBase<T>
     {
         protected Dictionary<string, object> MessageSenders = new Dictionary<string, object>();
+
         public ServiceClientBase(RabbitMqConfig config)
         {
             Initialize(config);

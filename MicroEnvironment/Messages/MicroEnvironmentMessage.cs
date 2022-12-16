@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace MicroEnvironment
+namespace MicroEnvironment.Messages
 {
     public sealed class MicroEnvironmentMessage<T>
     {

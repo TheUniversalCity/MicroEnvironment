@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace MicroEnvironment
+namespace MicroEnvironment.HubConnectors.RabbitMq
 {
     public class RabbitMqConfig
     {

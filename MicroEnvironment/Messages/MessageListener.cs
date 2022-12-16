@@ -4,7 +4,7 @@ using MicroEnvironment.HubConnectors;
 using System;
 using System.Threading.Tasks;
 
-namespace MicroEnvironment
+namespace MicroEnvironment.Messages
 {
     public class MessageListener<TRequest>
     {

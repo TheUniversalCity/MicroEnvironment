@@ -1,20 +1,18 @@
-﻿using Binaron.Serializer;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Bson;
+﻿using MicroEnvironment.Messages;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
-using System.IO;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MicroEnvironment.HubConnectors
+namespace MicroEnvironment.HubConnectors.RabbitMq
 {
     public class RabbitMqMessageHubConnector<TMessage> : IMessageHubConnector<TMessage>, IDisposable
     {
         private readonly ConnectionFactory factory;
 
-        public JsonSerializer Serializer { get; }
+        //public JsonSerializer Serializer { get; }
 
         private readonly IConnection conn;
         private readonly IModel channelConsumer;
@@ -41,22 +39,29 @@ namespace MicroEnvironment.HubConnectors
                 RequestedChannelMax = 0
             };
 
-            this.Serializer = JsonSerializer.CreateDefault();
+            //this.Serializer = JsonSerializer.CreateDefault();
 
             conn = factory.CreateConnection();
             channelConsumer = conn.CreateModel();
             channelPublisher = conn.CreateModel();
+
+            channelConsumer.ModelShutdown += Channel_ModelShutdown;
+            channelPublisher.ModelShutdown += Channel_ModelShutdown;
+
             consumer = new AsyncEventingBasicConsumer(channelConsumer);
+
+            consumer.Received += async (ch, ea) =>
+            {
+                await OnMessageHandle?.Invoke(
+                    ea.Exchange + ea.RoutingKey,
+                    JsonSerializer.Deserialize<MicroEnvironmentMessage<TMessage>>(ea.Body.Span)
+                    );
+            };
         }
 
         public Task Send(string messageName, MicroEnvironmentMessage<TMessage> message, CancellationToken cancellationToken = default)
         {
-            using var ms = new MemoryStream();
-            using BsonDataWriter writer = new BsonDataWriter(ms);
-            
-            Serializer.Serialize(writer, message);
-            
-            channelPublisher.BasicPublish("", messageName, null, ms.ToArray());
+            channelPublisher.BasicPublish("", messageName, null, JsonSerializer.SerializeToUtf8Bytes(message));
 
             return Task.CompletedTask;
         }
@@ -72,33 +77,16 @@ namespace MicroEnvironment.HubConnectors
                 messageName = channelConsumer.QueueDeclare(messageName, false, false, false, null).QueueName;
             }
 
-            consumer.Received += async (ch, ea) =>
-            {
-                var body = ea.Body.ToArray();
-                using var stream = new MemoryStream(body);
-                using BsonDataReader reader = new BsonDataReader(stream);
-
-                await Task.Factory.StartNew(() => {
-                    OnMessageHandle?.Invoke(
-                        ea.Exchange + ea.RoutingKey,
-                        Serializer.Deserialize<MicroEnvironmentMessage<TMessage>>(reader)
-                        );
-                });
-
-                await Task.CompletedTask;
-            };
-
             // this consumer tag identifies the subscription
             // when it has to be cancel
             string tag = channelConsumer.BasicConsume(messageName, true, consumer);
-            channelConsumer.ModelShutdown += Channel_ModelShutdown;
 
             return Task.FromResult(messageName);
         }
 
         private void Channel_ModelShutdown(object sender, ShutdownEventArgs e)
         {
-
+            // 
         }
 
         protected virtual void Dispose(bool disposing)

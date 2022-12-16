@@ -1,4 +1,6 @@
 ﻿using MicroEnvironment.HubConnectors;
+using MicroEnvironment.HubConnectors.RabbitMq;
+using MicroEnvironment.Messages;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -6,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MicroEnvironment.Test
 {
-    class CustomerServiceRabbitMQClient //: ICustomerService
+    class CustomerServiceRabbitMQClient : ICustomerService
     {
         static readonly string QUEUE_NAME_OF_CUSTOMER_CREATE = nameof(ICustomerService).Substring(1) + "_" + nameof(CustomerCreate);
         static readonly string QUEUE_NAME_OF_CUSTOMER_DELETE = nameof(ICustomerService).Substring(1) + "_" + nameof(CustomerDelete);

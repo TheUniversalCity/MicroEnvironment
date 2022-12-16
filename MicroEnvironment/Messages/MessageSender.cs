@@ -2,11 +2,10 @@
 using MicroEnvironment.HubConnectors;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MicroEnvironment
+namespace MicroEnvironment.Messages
 {
     public class MessageSender<TRequest>
     {
