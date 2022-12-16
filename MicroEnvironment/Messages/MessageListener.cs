@@ -1,5 +1,4 @@
-﻿using CommonLibrary.Exceptions;
-using MicroEnvironment.Attributes;
+﻿using MicroEnvironment.Attributes;
 using MicroEnvironment.HubConnectors;
 using System;
 using System.Threading.Tasks;
@@ -72,7 +71,7 @@ namespace MicroEnvironment.Messages
                     Task.Factory.StartNew(async (envMessage) =>
                     {
                         TResponse result = default;
-                        ExceptionContainer exContainer = null;
+                        Exception ex = null;
 
                         var _envMessage = envMessage as MicroEnvironmentMessage<TRequest>;
                         
@@ -80,16 +79,16 @@ namespace MicroEnvironment.Messages
                         {
                             result = delege(_envMessage.Message);
                         }
-                        catch (Exception ex)
+                        catch (Exception _ex)
                         {
-                            exContainer = ex;
+                            ex = _ex;
                         }
 
                         var microMessage = new MicroEnvironmentMessage<TResponse>(result)
                         {
                             MessageId = _envMessage.MessageId,
                             Timestamp = _envMessage.Timestamp,
-                            Error = exContainer?.GetContent()
+                            Error = ex?.Message
                         };
 
                         await this.HubResponseConnector.Send(
