@@ -25,11 +25,11 @@ namespace MicroEnvironment.Test
             ThreadPool.SetMinThreads(400, 200);
 
             customerService = new CustomerService();
-            customerService.ListenToRabbitMQ();
+            //customerService.ListenToRabbitMQ();
             customerService.ListenToKafka();
 
             customerService2 = new CustomerService();
-            customerService2.ListenToRabbitMQ();
+           // customerService2.ListenToRabbitMQ();
             customerService2.ListenToKafka();
 
             //var customerService2 = new CustomerService();
@@ -84,7 +84,7 @@ namespace MicroEnvironment.Test
 
             sw.Start();
 
-            for (int i = 0; i < 200; i++)
+            for (int i = 0; i < 1; i++)
             {
                 var guid = Guid.NewGuid().ToString();
 
