@@ -9,15 +9,21 @@ namespace MicroEnvironment.Test
         static string QUEUE_NAME_OF_CUSTOMER_CREATE = nameof(ICustomerService).Substring(1) + "_" + nameof(CustomerCreate);
         static string QUEUE_NAME_OF_CUSTOMER_DELETE = nameof(ICustomerService).Substring(1) + "_" + nameof(CustomerDelete);
 
+        static KafkaConfig config = new KafkaConfig
+        {
+            BootstrapServers = "localhost",
+            GroupId = "Grup1"
+        };
+
         private MessageSender<string, string> CustomerCreateMessageHub { get; set; } = new MessageSender<string, string>(
             QUEUE_NAME_OF_CUSTOMER_CREATE,
-            new KafkaMessageHubConnector<string>(new KafkaConfig { BootstrapServers = "localhost:9092", GroupId = "Grup1" }),
-            new KafkaMessageHubConnector<string>(new KafkaConfig { BootstrapServers = "localhost:9092", GroupId = "Grup1" }));
+            new KafkaMessageHubConnector<string>(config),
+            new KafkaMessageHubConnector<string>(config));
 
         private MessageSender<string, string> CustomerDeleteMessageHub { get; set; } = new MessageSender<string, string>(
             QUEUE_NAME_OF_CUSTOMER_DELETE,
-            new KafkaMessageHubConnector<string>(new KafkaConfig { BootstrapServers = "localhost:9092", GroupId = "Grup1" }),
-            new KafkaMessageHubConnector<string>(new KafkaConfig { BootstrapServers = "localhost:9092", GroupId = "Grup1" }));
+            new KafkaMessageHubConnector<string>(config),
+            new KafkaMessageHubConnector<string>(config));
 
         public Task<string> CustomerCreate(string message)
         {

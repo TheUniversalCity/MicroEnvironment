@@ -277,11 +277,6 @@ namespace MicroEnvironment.HubConnectors.Kafka
         public int? MaxInFlight { get; set; }
         //
         // Summary:
-        //     Non-topic request timeout in milliseconds. This is for metadata requests, etc.
-        //     default: 60000 importance: low
-        public int? MetadataRequestTimeoutMs { get; set; }
-        //
-        // Summary:
         //     Period of time in milliseconds at which topic and broker metadata is refreshed
         //     in order to proactively discover any new brokers, topics, partitions or partition
         //     leader changes. Use -1 to disable the intervalled refresh (not recommended).
