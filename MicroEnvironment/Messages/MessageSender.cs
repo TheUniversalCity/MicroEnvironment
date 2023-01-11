@@ -72,7 +72,7 @@ namespace MicroEnvironment.Messages
 
         public async Task<TResponse> Send(TRequest message)
         {
-            var tcs = new TaskCompletionSource<TResponse>();
+            var tcs = new TaskCompletionSource<TResponse>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             using var ct = new CancellationTokenSource(Timeout);
 

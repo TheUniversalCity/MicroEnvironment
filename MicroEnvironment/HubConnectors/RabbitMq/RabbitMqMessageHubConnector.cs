@@ -56,9 +56,13 @@ namespace MicroEnvironment.HubConnectors.RabbitMq
                 using var stream = new MemoryStream(body);
                 using BsonDataReader reader = new BsonDataReader(stream);
 
+                channelConsumer.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+
                 await OnMessageHandle?.Invoke(
                     ea.Exchange + ea.RoutingKey,
                     Serializer.Deserialize<MicroEnvironmentMessage<TMessage>>(reader));
+
+                throw new Exception();
             };
         }
 
@@ -74,8 +78,10 @@ namespace MicroEnvironment.HubConnectors.RabbitMq
             return Task.CompletedTask;
         }
 
-        public Task<string> Subscribe(string messageName)
+        public async Task<string> Subscribe(string messageName)
         {
+            await Task.Yield();
+
             if (string.IsNullOrEmpty(messageName))
             {
                 messageName = channelConsumer.QueueDeclare().QueueName;
@@ -89,7 +95,7 @@ namespace MicroEnvironment.HubConnectors.RabbitMq
             // when it has to be cancel
             string tag = channelConsumer.BasicConsume(messageName, true, consumer);
 
-            return Task.FromResult(messageName);
+            return messageName;
         }
 
         private void Channel_ModelShutdown(object sender, ShutdownEventArgs e)
