@@ -20,7 +20,7 @@ namespace MicroEnvironment
             _config = config;
         }
 
-        public void Listen()
+        public async Task ListenAsync()
         {
             Type serviceType = _serviceInstance.GetType();
             MethodInfo[] methods = serviceType
@@ -108,7 +108,7 @@ namespace MicroEnvironment
                         .FirstOrDefault();
                 }
 
-                startAsyncMethod.Invoke(messageListenerInstance, null);
+                await (Task)startAsyncMethod.Invoke(messageListenerInstance, null);
                 registerMethod.Invoke(messageListenerInstance, new[] { methodDelegate });
             }
         }
