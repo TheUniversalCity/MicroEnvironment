@@ -22,6 +22,11 @@ namespace MicroEnvironment.Messages
         {
             return HubRequestConnector.Send(MessageName, new MicroEnvironmentMessage<TRequest>(message) { MessageId = Guid.NewGuid(), Timestamp = DateTime.Now });
         }
+
+        public async Task StartAsync()
+        {
+            await HubRequestConnector.StartAsync();
+        }
     }
 
     public class MessageSender<TRequest, TResponse>
