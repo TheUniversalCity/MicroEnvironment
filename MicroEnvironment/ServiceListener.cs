@@ -13,11 +13,13 @@ namespace MicroEnvironment
     {
         private readonly RabbitMqConfig _config;
         private readonly T _serviceInstance;
+        
         public ServiceListener(RabbitMqConfig config, T serviceInstance)
         {
             _serviceInstance = serviceInstance;
             _config = config;
         }
+
         public void Listen()
         {
             Type serviceType = _serviceInstance.GetType();
@@ -89,10 +91,9 @@ namespace MicroEnvironment
                         Expression.GetDelegateType(new Type[] { inputType, returnType }), _serviceInstance);
 
                 MethodInfo registerMethod;
-
-                var registerMethods = genericMessageListenerType
-                                                    .GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                                                    .Where(m => m.Name == "Register" && m.ReturnType == typeof(void));
+                var listenerMethods = genericMessageListenerType.GetMethods(BindingFlags.Public | BindingFlags.Instance);
+                var registerMethods = listenerMethods.Where(m => m.Name == "Register" && m.ReturnType == typeof(void));
+                var startAsyncMethod = listenerMethods.FirstOrDefault(m => m.Name == "StartAsync" && m.ReturnType == typeof(Task));
 
                 if (isAwaitable)
                 {
@@ -107,6 +108,7 @@ namespace MicroEnvironment
                         .FirstOrDefault();
                 }
 
+                startAsyncMethod.Invoke(messageListenerInstance, null);
                 registerMethod.Invoke(messageListenerInstance, new[] { methodDelegate });
             }
         }

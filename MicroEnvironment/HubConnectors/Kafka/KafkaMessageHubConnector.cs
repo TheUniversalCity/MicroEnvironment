@@ -12,15 +12,18 @@ namespace MicroEnvironment.HubConnectors.Kafka
 {
     public class KafkaMessageHubConnector<TMessage> : IMessageHubConnector<TMessage>, IDisposable
     {
+        private readonly ProducerConfig producerConfig;
+        private readonly ConsumerConfig consumerConfig;
+
         private JsonSerializer Serializer { get; set; }
-        private IProducer<byte[], byte[]> Producer { get; }
-        private IConsumer<byte[], byte[]> Consumer { get; }
+        private IProducer<byte[], byte[]> Producer { get; set; }
+        private IConsumer<byte[], byte[]> Consumer { get; set; }
 
         public event Func<string, MicroEnvironmentMessage<TMessage>, Task> OnMessageHandle;
         
         public KafkaMessageHubConnector(KafkaConfig config)
         {
-            var producerConfig = new ProducerConfig
+            producerConfig = new ProducerConfig
             {
                 BootstrapServers = config.BootstrapServers, // "localhost:9092",
                 Acks = (Confluent.Kafka.Acks?)config.Acks,
@@ -85,7 +88,7 @@ namespace MicroEnvironment.HubConnectors.Kafka
                 TopicMetadataRefreshIntervalMs = config.TopicMetadataRefreshIntervalMs,
                 TopicMetadataRefreshSparse = config.TopicMetadataRefreshSparse
             };
-            var consumerConfig = new ConsumerConfig
+            consumerConfig = new ConsumerConfig
             {
                 BootstrapServers = config.BootstrapServers, // "localhost:9092",
                 GroupId = config.GroupId,
@@ -156,16 +159,6 @@ namespace MicroEnvironment.HubConnectors.Kafka
             };
 
             Serializer = JsonSerializer.CreateDefault();
-
-            Producer = new ProducerBuilder<byte[], byte[]>(producerConfig)
-                //.SetKeySerializer(new AvroSerializer<byte[]>(SchemaRegistry))
-                //.SetValueSerializer(new AvroSerializer<byte[]>(SchemaRegistry))
-                .Build();
-
-            Consumer = new ConsumerBuilder<byte[], byte[]>(consumerConfig)
-                //.SetKeyDeserializer(new AvroDeserializer<byte[]>(SchemaRegistry).AsSyncOverAsync())
-                //.SetValueDeserializer(new AvroDeserializer<byte[]>(SchemaRegistry).AsSyncOverAsync())
-                .Build();
         }
 
         public async Task Send(string messageName, MicroEnvironmentMessage<TMessage> message, CancellationToken cancellationToken = default)
@@ -246,6 +239,21 @@ namespace MicroEnvironment.HubConnectors.Kafka
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        public async Task StartAsync()
+        {
+            await Task.Yield();
+
+            Producer = new ProducerBuilder<byte[], byte[]>(producerConfig)
+                //.SetKeySerializer(new AvroSerializer<byte[]>(SchemaRegistry))
+                //.SetValueSerializer(new AvroSerializer<byte[]>(SchemaRegistry))
+                .Build();
+
+            Consumer = new ConsumerBuilder<byte[], byte[]>(consumerConfig)
+                //.SetKeyDeserializer(new AvroDeserializer<byte[]>(SchemaRegistry).AsSyncOverAsync())
+                //.SetValueDeserializer(new AvroDeserializer<byte[]>(SchemaRegistry).AsSyncOverAsync())
+                .Build();
         }
     }
 }

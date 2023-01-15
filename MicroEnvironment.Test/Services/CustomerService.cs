@@ -32,7 +32,7 @@ namespace MicroEnvironment.Test
             return Task.FromResult(message);
         }
 
-        public void ListenToRabbitMQ()
+        public async Task ListenToRabbitMQ()
         {
             RabbitMqConfig config = new RabbitMqConfig
             {
@@ -49,11 +49,14 @@ namespace MicroEnvironment.Test
                 new RabbitMqMessageHubConnector<string>(config),
                 new RabbitMqMessageHubConnector<string>(config));
 
+            await CustomerCreateListener.StartAsync();
+            await CustomerDeleteListener.StartAsync();
+
             CustomerCreateListener.Register(CustomerCreate);
             CustomerDeleteListener.Register(CustomerDelete);
         }
 
-        public void ListenToKafka()
+        public async Task ListenToKafka()
         {
             KafkaConfig config = new KafkaConfig
             {
@@ -69,6 +72,9 @@ namespace MicroEnvironment.Test
                 nameof(CustomerService) + "_" + nameof(CustomerDelete),
                 new KafkaMessageHubConnector<string>(config),
                 new KafkaMessageHubConnector<string>(config));
+
+            await CustomerCreateListener.StartAsync();
+            await CustomerDeleteListener.StartAsync();
 
             CustomerCreateListener.Register(CustomerCreate);
             CustomerDeleteListener.Register(CustomerDelete);

@@ -25,11 +25,13 @@ namespace MicroEnvironment.Test
             ThreadPool.SetMinThreads(400, 200);
 
             customerService = new CustomerService();
-            //customerService.ListenToRabbitMQ();
+
+            customerService.ListenToRabbitMQ();
             customerService.ListenToKafka();
 
             customerService2 = new CustomerService();
-           // customerService2.ListenToRabbitMQ();
+
+            customerService2.ListenToRabbitMQ();
             customerService2.ListenToKafka();
 
             //var customerService2 = new CustomerService();
@@ -54,7 +56,7 @@ namespace MicroEnvironment.Test
             var customerServiceClient = new CustomerServiceRabbitMQClient();
 
             await customerServiceClient.StartAsync();
-
+            
             var sw = new Stopwatch();
 
             sw.Start();
@@ -112,7 +114,7 @@ namespace MicroEnvironment.Test
 
             var taskList = new List<Task<string>>();
 
-            for (int i = 0; i < 1000000; i++)
+            for (int i = 0; i < 100000; i++)
             {
                 //taskList.Add(CustomerFlow(customerServiceClient));
                 taskList.Add(customerServiceClient.CustomerCreate(guid));//CustomerFlow(customerServiceClient));
@@ -141,7 +143,7 @@ namespace MicroEnvironment.Test
 
             var taskList = new List<Task<string>>();
 
-            for (int i = 0; i < 1000000; i++)
+            for (int i = 0; i < 100000; i++)
             {
                 var guid = Guid.NewGuid().ToString();
 

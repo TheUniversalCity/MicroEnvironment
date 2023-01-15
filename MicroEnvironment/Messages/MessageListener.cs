@@ -31,6 +31,7 @@ namespace MicroEnvironment.Messages
 
             this.HubRequestConnector.Subscribe(MessageName);
         }
+
         [ForAwaitable]
         public void Register(Func<TRequest, Task> delege)
         {
@@ -46,6 +47,11 @@ namespace MicroEnvironment.Messages
             };
 
             this.HubRequestConnector.Subscribe(MessageName);
+        }
+
+        public Task StartAsync()
+        {
+            return HubRequestConnector.StartAsync();
         }
     }
 
@@ -104,6 +110,7 @@ namespace MicroEnvironment.Messages
             this.HubRequestConnector.Subscribe(MessageName);
         }
         [ForAwaitable]
+
         public void Register(Func<TRequest, Task<TResponse>> delege)
         {
             this.HubRequestConnector.OnMessageHandle += (messageName, envMessage) =>
@@ -126,6 +133,12 @@ namespace MicroEnvironment.Messages
             };
 
             this.HubRequestConnector.Subscribe(MessageName);
+        }
+
+        public async Task StartAsync()
+        {
+            await HubRequestConnector.StartAsync();
+            await HubResponseConnector.StartAsync();
         }
     }
 }

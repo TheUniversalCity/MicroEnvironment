@@ -65,6 +65,9 @@ namespace MicroEnvironment.Messages
 
         public async Task StartAsync()
         {
+            await HubRequestConnector.StartAsync();
+            await HubResponseConnector.StartAsync();
+
             HubResponseConnector.OnMessageHandle += HubResponseConnector_OnMessageHandle;
 
             ReplTo = await this.HubResponseConnector.Subscribe(null);
