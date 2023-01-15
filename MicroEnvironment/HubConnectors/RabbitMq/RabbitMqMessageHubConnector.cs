@@ -13,6 +13,7 @@ namespace MicroEnvironment.HubConnectors.RabbitMq
     public class RabbitMqMessageHubConnector<TMessage> : IMessageHubConnector<TMessage>, IDisposable
     {
         private readonly ConnectionFactory factory;
+        private IConnection externalConnection;
         private IConnection conn;
         private IModel channelConsumer;
         private IModel channelPublisher;
@@ -21,7 +22,7 @@ namespace MicroEnvironment.HubConnectors.RabbitMq
 
         public event Func<string, MicroEnvironmentMessage<TMessage>, Task> OnMessageHandle;
 
-        public RabbitMqMessageHubConnector(RabbitMqConfig config)
+        public RabbitMqMessageHubConnector(RabbitMqConfig config) : this()
         {
             factory = new ConnectionFactory
             {
@@ -38,7 +39,15 @@ namespace MicroEnvironment.HubConnectors.RabbitMq
                 //UseBackgroundThreadsForIO = true,
                 RequestedChannelMax = 0
             };
+        }
 
+        public RabbitMqMessageHubConnector(IConnection conn) : this()
+        {
+            this.externalConnection = conn;
+        }
+
+        private RabbitMqMessageHubConnector()
+        {
             this.Serializer = JsonSerializer.CreateDefault();
         }
 
@@ -81,14 +90,25 @@ namespace MicroEnvironment.HubConnectors.RabbitMq
         {
             await Task.Yield();
 
-            if (conn != null)
+            Dispose(false);
+
+            var _tempConnection = default(IConnection);
+
+            if (externalConnection != null)
             {
-                Dispose(false);
+                _tempConnection = externalConnection;
+            }
+            else if (factory != null)
+            {
+                _tempConnection = conn = factory.CreateConnection();
+            }
+            else
+            {
+                throw new Exception("ConnectionFactory required!");
             }
 
-            conn = factory.CreateConnection();
-            channelConsumer = conn.CreateModel();
-            channelPublisher = conn.CreateModel();
+            channelConsumer = _tempConnection.CreateModel();
+            channelPublisher = _tempConnection.CreateModel();
 
             channelConsumer.ModelShutdown += Channel_ModelShutdown;
             channelPublisher.ModelShutdown += Channel_ModelShutdown;
@@ -111,13 +131,13 @@ namespace MicroEnvironment.HubConnectors.RabbitMq
 
         protected virtual void Dispose(bool disposing)
         {
-            channelConsumer.Close();
-            channelPublisher.Close();
-            conn.Close();
+            channelConsumer?.Close();
+            channelPublisher?.Close();
+            conn?.Close();
 
-            channelConsumer.Dispose();
-            channelPublisher.Dispose();
-            conn.Dispose();
+            channelConsumer?.Dispose();
+            channelPublisher?.Dispose();
+            conn?.Dispose();
         }
 
         public void Dispose()

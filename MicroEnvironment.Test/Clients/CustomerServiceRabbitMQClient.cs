@@ -1,6 +1,7 @@
 ﻿using MicroEnvironment.HubConnectors;
 using MicroEnvironment.HubConnectors.RabbitMq;
 using MicroEnvironment.Messages;
+using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -17,16 +18,38 @@ namespace MicroEnvironment.Test
         {
             Host = "localhost"
         };
+        static IConnection connection;
+
+        static CustomerServiceRabbitMQClient()
+        {
+            var factory = new ConnectionFactory
+            {
+                UserName = config.Username,
+                Password = config.Password,
+                VirtualHost = "/",
+                HostName = config.Host,
+                Port = config.Port,
+                DispatchConsumersAsync = true,
+                AutomaticRecoveryEnabled = true,
+                TopologyRecoveryEnabled = true,
+                //NetworkRecoveryInterval = TimeSpan.FromSeconds(5),
+                //RequestedHeartbeat = TimeSpan.FromHours(1),
+                //UseBackgroundThreadsForIO = true,
+                RequestedChannelMax = 0
+            };
+
+            connection = factory.CreateConnection();
+        }
 
         private MessageSender<string, string> CustomerCreateMessageHub { get; set; } = new MessageSender<string, string>(
             QUEUE_NAME_OF_CUSTOMER_CREATE,
-            new RabbitMqMessageHubConnector<string>(config),
-            new RabbitMqMessageHubConnector<string>(config));
+            new RabbitMqMessageHubConnector<string>(connection),
+            new RabbitMqMessageHubConnector<string>(connection));
 
         private MessageSender<string, string> CustomerDeleteMessageHub { get; set; } = new MessageSender<string, string>(
             QUEUE_NAME_OF_CUSTOMER_DELETE,
-            new RabbitMqMessageHubConnector<string>(config),
-            new RabbitMqMessageHubConnector<string>(config));
+            new RabbitMqMessageHubConnector<string>(connection),
+            new RabbitMqMessageHubConnector<string>(connection));
 
         public async Task StartAsync()
         {
