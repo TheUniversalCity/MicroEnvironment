@@ -18,6 +18,8 @@ namespace MicroEnvironment.HubConnectors.RabbitMq
         private IModel channelConsumer;
         private IModel channelPublisher;
         private AsyncEventingBasicConsumer consumer;
+        private bool disposedValue;
+
         private JsonSerializer Serializer { get; }
 
         public event Func<string, MicroEnvironmentMessage<TMessage>, Task> OnMessageHandle;
@@ -131,18 +133,37 @@ namespace MicroEnvironment.HubConnectors.RabbitMq
 
         protected virtual void Dispose(bool disposing)
         {
-            channelConsumer?.Close();
-            channelPublisher?.Close();
-            conn?.Close();
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects)
+                    channelConsumer?.Close();
+                    channelPublisher?.Close();
+                    conn?.Close();
 
-            channelConsumer?.Dispose();
-            channelPublisher?.Dispose();
-            conn?.Dispose();
+                    channelConsumer?.Dispose();
+                    channelPublisher?.Dispose();
+                    conn?.Dispose();
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                disposedValue = true;
+            }
+        }
+
+        // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        ~RabbitMqMessageHubConnector()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: false);
         }
 
         public void Dispose()
         {
-            Dispose(true);
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
     }

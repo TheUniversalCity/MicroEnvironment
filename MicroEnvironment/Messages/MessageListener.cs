@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 
 namespace MicroEnvironment.Messages
 {
-    public class MessageListener<TRequest>
+    public class MessageListener<TRequest> : IDisposable
     {
+        private bool disposedValue;
+
         public string MessageName { get; }
         private IMessageHubConnector<TRequest> HubRequestConnector { get; }
 
@@ -53,10 +55,42 @@ namespace MicroEnvironment.Messages
         {
             return HubRequestConnector.StartAsync();
         }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects)
+                    HubRequestConnector.Dispose();
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                disposedValue = true;
+            }
+        }
+
+        // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        ~MessageListener()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: false);
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
     }
 
-    public class MessageListener<TRequest, TResponse>
+    public class MessageListener<TRequest, TResponse> : IDisposable
     {
+        private bool disposedValue;
+
         public string MessageName { get; }
         private IMessageHubConnector<TRequest> HubRequestConnector { get; }
         private IMessageHubConnector<TResponse> HubResponseConnector { get; }
@@ -139,6 +173,37 @@ namespace MicroEnvironment.Messages
         {
             await HubRequestConnector.StartAsync();
             await HubResponseConnector.StartAsync();
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects)
+                    HubRequestConnector.Dispose();
+                    HubRequestConnector.Dispose();
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                disposedValue = true;
+            }
+        }
+
+        // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        ~MessageListener()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: false);
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }
