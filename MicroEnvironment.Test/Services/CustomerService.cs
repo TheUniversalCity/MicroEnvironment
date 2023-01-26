@@ -1,8 +1,6 @@
-﻿using MicroEnvironment.HubConnectors;
-using MicroEnvironment.HubConnectors.Kafka;
+﻿using MicroEnvironment.HubConnectors.Kafka;
 using MicroEnvironment.HubConnectors.RabbitMq;
 using MicroEnvironment.Messages;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
