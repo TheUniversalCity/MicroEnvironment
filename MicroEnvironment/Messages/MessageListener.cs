@@ -108,7 +108,7 @@ namespace MicroEnvironment.Messages
             {
                 if (MessageName == messageName)
                 {
-                    Task.Factory.StartNew(async (envMessage) =>
+                    return Task.Factory.StartNew(async (envMessage) =>
                     {
                         TResponse result = default;
                         Exception ex = null;
@@ -143,19 +143,36 @@ namespace MicroEnvironment.Messages
 
             this.HubRequestConnector.Subscribe(MessageName);
         }
-        [ForAwaitable]
 
+        [ForAwaitable]
         public void Register(Func<TRequest, Task<TResponse>> delege)
         {
             this.HubRequestConnector.OnMessageHandle += (messageName, envMessage) =>
             {
                 if (MessageName == messageName)
                 {
-                    Task.Factory.StartNew(async (envMessage) =>
+                    return Task.Factory.StartNew(async (envMessage) =>
                     {
+                        TResponse result = default;
+                        Exception ex = null;
+
                         var _envMessage = envMessage as MicroEnvironmentMessage<TRequest>;
-                        var result = await delege(_envMessage.Message);
-                        var microMessage = new MicroEnvironmentMessage<TResponse>(result) { MessageId = _envMessage.MessageId, Timestamp = _envMessage.Timestamp };
+
+                        try
+                        {
+                            result = await delege(_envMessage.Message);
+                        }
+                        catch (Exception _ex)
+                        {
+                            ex = _ex;
+                        }
+
+                        var microMessage = new MicroEnvironmentMessage<TResponse>(result)
+                        {
+                            MessageId = _envMessage.MessageId,
+                            Timestamp = _envMessage.Timestamp,
+                            Error = ex?.Message
+                        };
 
                         await this.HubResponseConnector.Send(
                             _envMessage.Headers[MicroEnvironmentMessageHeaders.REPLY_TO],

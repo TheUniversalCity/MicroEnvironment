@@ -22,17 +22,17 @@ namespace MicroEnvironment.Test
         {
             this.output = output;
 
-            ThreadPool.SetMinThreads(400, 200);
+            ThreadPool.SetMinThreads(200, 200);
 
             customerService = new CustomerService();
 
-            customerService.ListenToRabbitMQ();
-            customerService.ListenToKafka();
+            customerService.ListenToRabbitMQ().GetAwaiter().GetResult();
+            customerService.ListenToKafka().GetAwaiter().GetResult();
 
             customerService2 = new CustomerService();
 
-            customerService2.ListenToRabbitMQ();
-            customerService2.ListenToKafka();
+            customerService2.ListenToRabbitMQ().GetAwaiter().GetResult();
+            customerService2.ListenToKafka().GetAwaiter().GetResult();
 
             //var customerService2 = new CustomerService();
             //customerService2.ListenToRabbitMQ();
