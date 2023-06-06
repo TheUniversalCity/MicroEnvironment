@@ -50,7 +50,7 @@ namespace MicroEnvironment.Test
 
         string message = string.Join("", Enumerable.Range(0, 10000).Select(c => 'k'));
 
-        [Fact]
+        [Fact] 
         public async Task Send_Async_Message_RabbitMq_Serial()
         {
             var customerServiceClient = new CustomerServiceRabbitMQClient();
