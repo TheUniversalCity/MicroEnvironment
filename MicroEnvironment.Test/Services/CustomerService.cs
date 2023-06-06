@@ -18,6 +18,7 @@ namespace MicroEnvironment.Test
         public int Counter;
         public Task<string> CustomerCreate(string message)
         {
+            //throw new System.Exception("sunucu hata fırlattı");
             //Thread.Sleep(1000);
             Interlocked.Increment(ref Counter);
             

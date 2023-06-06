@@ -61,7 +61,7 @@ namespace MicroEnvironment.Test
 
             sw.Start();
 
-            for (int i = 0; i < 20; i++)
+            for (int i = 0; i < 100; i++)
             {
                 var guid = Guid.NewGuid().ToString();
 
@@ -86,7 +86,7 @@ namespace MicroEnvironment.Test
 
             sw.Start();
 
-            for (int i = 0; i < 1; i++)
+            for (int i = 0; i < 100; i++)
             {
                 var guid = Guid.NewGuid().ToString();
 

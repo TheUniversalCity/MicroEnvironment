@@ -1,10 +1,6 @@
-﻿using MicroEnvironment.HubConnectors;
-using MicroEnvironment.HubConnectors.RabbitMq;
+﻿using MicroEnvironment.HubConnectors.RabbitMq;
 using MicroEnvironment.Messages;
 using RabbitMQ.Client;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace MicroEnvironment.Test
@@ -43,13 +39,13 @@ namespace MicroEnvironment.Test
 
         private MessageSender<string, string> CustomerCreateMessageHub { get; set; } = new MessageSender<string, string>(
             QUEUE_NAME_OF_CUSTOMER_CREATE,
-            new RabbitMqMessageHubConnector<string>(connection),
-            new RabbitMqMessageHubConnector<string>(connection));
+            new RabbitMqMessageHubConnector<string>(config),
+            new RabbitMqMessageHubConnector<string>(config));
 
         private MessageSender<string, string> CustomerDeleteMessageHub { get; set; } = new MessageSender<string, string>(
             QUEUE_NAME_OF_CUSTOMER_DELETE,
-            new RabbitMqMessageHubConnector<string>(connection),
-            new RabbitMqMessageHubConnector<string>(connection));
+            new RabbitMqMessageHubConnector<string>(config),
+            new RabbitMqMessageHubConnector<string>(config));
 
         public async Task StartAsync()
         {
