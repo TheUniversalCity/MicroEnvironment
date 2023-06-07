@@ -163,7 +163,7 @@ namespace MicroEnvironment.Messages
                         {
                             MessageId = _envMessage.MessageId,
                             Timestamp = _envMessage.Timestamp,
-                            Error = $"Exception: {ex?.Message}"
+                            Error = ex != null ? $"Exception: {ex.Message}" : null
                         };
 
                         await this.HubResponseConnector.Send(
@@ -207,7 +207,7 @@ namespace MicroEnvironment.Messages
                         {
                             MessageId = _envMessage.MessageId,
                             Timestamp = _envMessage.Timestamp,
-                            Error = $"Exception: {ex?.Message}"
+                            Error = ex != null ? $"Exception: {ex.Message}" : null
                         };
 
                         await this.HubResponseConnector.Send(

@@ -28,13 +28,13 @@ namespace MicroEnvironment.Test
         }
 
         [MicroServiceMethod]
-        public Task<string> CustomerCreate(string message)
+        public async Task<string> CustomerCreate(string message)
         {
-            throw new System.Exception("sunucu hata fırlattı");
-            //Thread.Sleep(1000);
+            //throw new System.Exception("sunucu hata fırlattı");
+            await Task.Delay(1000);
             Interlocked.Increment(ref Counter);
 
-            return Task.FromResult(message);
+            return await Task.FromResult(message);
         }
 
         [MicroServiceMethod]
