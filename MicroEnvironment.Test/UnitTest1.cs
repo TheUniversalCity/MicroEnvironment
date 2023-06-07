@@ -24,15 +24,15 @@ namespace MicroEnvironment.Test
 
             ThreadPool.SetMinThreads(200, 200);
 
-            customerService = new CustomerService();
+            customerService = new CustomerService(this.output);
 
-            customerService.ListenToRabbitMQ().GetAwaiter().GetResult();
-            customerService.ListenToKafka().GetAwaiter().GetResult();
+            customerService.ListenToRabbitMQ();
+            customerService.ListenToKafka();
 
-            customerService2 = new CustomerService();
+            customerService2 = new CustomerService(this.output);
 
-            customerService2.ListenToRabbitMQ().GetAwaiter().GetResult();
-            customerService2.ListenToKafka().GetAwaiter().GetResult();
+            customerService2.ListenToRabbitMQ();
+            customerService2.ListenToKafka();
 
             //var customerService2 = new CustomerService();
             //customerService2.ListenToRabbitMQ();

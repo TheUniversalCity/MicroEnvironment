@@ -5,7 +5,23 @@ using System.Threading.Tasks;
 
 namespace MicroEnvironment.Messages
 {
-    public class MessageListener<TRequest> : IDisposable
+    public class MessageListener
+    {
+        protected Action<string, Exception, MicroEnvironmentMessage> OnExceptionHandlingEventHandler;
+
+        public event Action<string, Exception, MicroEnvironmentMessage> OnExceptionHandlingEvent {
+            add
+            {
+                OnExceptionHandlingEventHandler += value;
+            }
+            remove
+            {
+                OnExceptionHandlingEventHandler -= value;
+            }
+        }
+    }
+
+    public class MessageListener<TRequest> : MessageListener, IDisposable
     {
         private bool disposedValue;
 
@@ -26,7 +42,16 @@ namespace MicroEnvironment.Messages
                {
                    await Task.Factory.StartNew((envMessage) =>
                    {
-                       delege((envMessage as MicroEnvironmentMessage<TRequest>).Message);
+                       var _envMessage = (envMessage as MicroEnvironmentMessage<TRequest>);
+
+                       try
+                       {
+                           delege(_envMessage.Message);
+                       }
+                       catch (Exception _ex)
+                       {
+                           OnExceptionHandlingEventHandler?.Invoke(messageName, _ex, _envMessage);
+                       }
                    }, envMessage);
                }
            };
@@ -43,7 +68,16 @@ namespace MicroEnvironment.Messages
                 {
                     await Task.Factory.StartNew(async (envMessage) =>
                     {
-                        await delege((envMessage as MicroEnvironmentMessage<TRequest>).Message);
+                        var _envMessage = (envMessage as MicroEnvironmentMessage<TRequest>);
+
+                        try
+                        {
+                            await delege(_envMessage.Message);
+                        }
+                        catch (Exception _ex)
+                        {
+                            OnExceptionHandlingEventHandler?.Invoke(messageName, _ex, _envMessage);
+                        }
                     }, envMessage);
                 }
             };
@@ -87,7 +121,7 @@ namespace MicroEnvironment.Messages
         }
     }
 
-    public class MessageListener<TRequest, TResponse> : IDisposable
+    public class MessageListener<TRequest, TResponse> : MessageListener, IDisposable
     {
         private bool disposedValue;
 
@@ -114,7 +148,7 @@ namespace MicroEnvironment.Messages
                         Exception ex = null;
 
                         var _envMessage = envMessage as MicroEnvironmentMessage<TRequest>;
-                        
+
                         try
                         {
                             result = delege(_envMessage.Message);
@@ -122,13 +156,14 @@ namespace MicroEnvironment.Messages
                         catch (Exception _ex)
                         {
                             ex = _ex;
+                            OnExceptionHandlingEventHandler?.Invoke(messageName, _ex, _envMessage);
                         }
 
                         var microMessage = new MicroEnvironmentMessage<TResponse>(result)
                         {
                             MessageId = _envMessage.MessageId,
                             Timestamp = _envMessage.Timestamp,
-                            Error = ex?.Message
+                            Error = $"Exception: {ex?.Message}"
                         };
 
                         await this.HubResponseConnector.Send(
@@ -165,13 +200,14 @@ namespace MicroEnvironment.Messages
                         catch (Exception _ex)
                         {
                             ex = _ex;
+                            OnExceptionHandlingEventHandler?.Invoke(messageName, _ex, _envMessage);
                         }
 
                         var microMessage = new MicroEnvironmentMessage<TResponse>(result)
                         {
                             MessageId = _envMessage.MessageId,
                             Timestamp = _envMessage.Timestamp,
-                            Error = ex?.Message
+                            Error = $"Exception: {ex?.Message}"
                         };
 
                         await this.HubResponseConnector.Send(

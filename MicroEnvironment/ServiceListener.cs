@@ -14,7 +14,6 @@ namespace MicroEnvironment
     {
         private readonly RabbitMqConfig _config;
         private readonly T _serviceInstance;
-        private readonly IConnection _connection;
 
         public ServiceListener(RabbitMqConfig config, T serviceInstance)
         {
@@ -22,7 +21,7 @@ namespace MicroEnvironment
             _config = config;
         }
 
-        public async Task ListenAsync()
+        public async Task ListenAsync(Action<string, Exception, MicroEnvironmentMessage> OnExceptionEventHandler = null)
         {
             Type serviceType = _serviceInstance.GetType();
             MethodInfo[] methods = serviceType
@@ -89,6 +88,11 @@ namespace MicroEnvironment
                     messageListenerInstance = Activator.CreateInstance(genericMessageListenerType, queueName, requestConnectorInstance);
                 }
 
+                if(OnExceptionEventHandler != null)
+                {
+                    ((MessageListener)messageListenerInstance).OnExceptionHandlingEvent += OnExceptionEventHandler;
+                }
+                
                 Delegate methodDelegate = method.CreateDelegate(
                         Expression.GetDelegateType(new Type[] { inputType, returnType }), _serviceInstance);
 
@@ -115,7 +119,7 @@ namespace MicroEnvironment
             }
         }
 
-        public async Task ListenOnSingleConnectionAsync()
+        public async Task ListenOnSingleConnectionAsync(Action<string, Exception, MicroEnvironmentMessage> OnExceptionEventHandler = null)
         {
             var factory = new ConnectionFactory
             {
@@ -195,6 +199,11 @@ namespace MicroEnvironment
                     Type messageListenerType = typeof(MessageListener<>);
                     genericMessageListenerType = messageListenerType.MakeGenericType(new Type[] { inputType });
                     messageListenerInstance = Activator.CreateInstance(genericMessageListenerType, queueName, requestConnectorInstance);
+                }
+
+                if (OnExceptionEventHandler != null)
+                {
+                    ((MessageListener)messageListenerInstance).OnExceptionHandlingEvent += OnExceptionEventHandler;
                 }
 
                 Delegate methodDelegate = method.CreateDelegate(
