@@ -9,7 +9,8 @@ namespace MicroEnvironment.Messages
     {
         protected Action<string, Exception, MicroEnvironmentMessage> OnExceptionHandlingEventHandler;
 
-        public event Action<string, Exception, MicroEnvironmentMessage> OnExceptionHandlingEvent {
+        public event Action<string, Exception, MicroEnvironmentMessage> OnExceptionHandlingEvent
+        {
             add
             {
                 OnExceptionHandlingEventHandler += value;
@@ -52,7 +53,7 @@ namespace MicroEnvironment.Messages
                        {
                            OnExceptionHandlingEventHandler?.Invoke(messageName, _ex, _envMessage);
                        }
-                   }, envMessage);
+                   }, envMessage).ContinueWith((t) => t.Dispose());
                }
            };
 
@@ -78,7 +79,7 @@ namespace MicroEnvironment.Messages
                         {
                             OnExceptionHandlingEventHandler?.Invoke(messageName, _ex, _envMessage);
                         }
-                    }, envMessage);
+                    }, envMessage).ContinueWith(t => t.Result).ContinueWith(t => t.Dispose());
                 }
             };
 
@@ -138,11 +139,11 @@ namespace MicroEnvironment.Messages
 
         public void Register(Func<TRequest, TResponse> delege)
         {
-            this.HubRequestConnector.OnMessageHandle += (messageName, envMessage) =>
+            this.HubRequestConnector.OnMessageHandle += async (messageName, envMessage) =>
             {
                 if (MessageName == messageName)
                 {
-                    return Task.Factory.StartNew(async (envMessage) =>
+                    await Task.Factory.StartNew(async (envMessage) =>
                     {
                         TResponse result = default;
                         Exception ex = null;
@@ -169,11 +170,8 @@ namespace MicroEnvironment.Messages
                         await this.HubResponseConnector.Send(
                             _envMessage.Headers[MicroEnvironmentMessageHeaders.REPLY_TO],
                             microMessage);
-                    }, envMessage);
-
+                    }, envMessage).ContinueWith(t => t.Result).ContinueWith(t => t.Dispose());
                 }
-
-                return Task.CompletedTask;
             };
 
             this.HubRequestConnector.Subscribe(MessageName);
@@ -182,11 +180,11 @@ namespace MicroEnvironment.Messages
         [ForAwaitable]
         public void Register(Func<TRequest, Task<TResponse>> delege)
         {
-            this.HubRequestConnector.OnMessageHandle += (messageName, envMessage) =>
+            this.HubRequestConnector.OnMessageHandle += async (messageName, envMessage) =>
             {
                 if (MessageName == messageName)
                 {
-                    return Task.Factory.StartNew(async (envMessage) =>
+                    await Task.Factory.StartNew(async (envMessage) =>
                     {
                         TResponse result = default;
                         Exception ex = null;
@@ -213,10 +211,8 @@ namespace MicroEnvironment.Messages
                         await this.HubResponseConnector.Send(
                             _envMessage.Headers[MicroEnvironmentMessageHeaders.REPLY_TO],
                             microMessage);
-                    }, envMessage);
+                    }, envMessage).ContinueWith(t=> t.Result).ContinueWith(t=> t.Dispose());
                 }
-
-                return Task.CompletedTask;
             };
 
             this.HubRequestConnector.Subscribe(MessageName);
