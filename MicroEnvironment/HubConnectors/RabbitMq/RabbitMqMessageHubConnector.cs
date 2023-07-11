@@ -23,6 +23,7 @@ namespace MicroEnvironment.HubConnectors.RabbitMq
         private JsonSerializer Serializer { get; }
 
         public event Func<string, MicroEnvironmentMessage<TMessage>, Task> OnMessageHandle;
+        public event Action<string> OnConnectionDown;
 
         public RabbitMqMessageHubConnector(RabbitMqConfig config) : this()
         {
@@ -86,6 +87,12 @@ namespace MicroEnvironment.HubConnectors.RabbitMq
         private void Channel_ModelShutdown(object sender, ShutdownEventArgs e)
         {
             // 
+            
+        }
+
+        private void _tempConnection_ConnectionShutdown(object sender, ShutdownEventArgs e)
+        {
+            OnConnectionDown?.Invoke(e.ReplyText);
         }
 
         public async Task StartAsync()
@@ -108,6 +115,8 @@ namespace MicroEnvironment.HubConnectors.RabbitMq
             {
                 throw new Exception("ConnectionFactory required!");
             }
+
+            _tempConnection.ConnectionShutdown += _tempConnection_ConnectionShutdown;
 
             channelConsumer = _tempConnection.CreateModel();
             channelPublisher = _tempConnection.CreateModel();

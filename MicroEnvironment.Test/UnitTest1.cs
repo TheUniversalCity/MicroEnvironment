@@ -22,7 +22,7 @@ namespace MicroEnvironment.Test
         {
             this.output = output;
 
-            ThreadPool.SetMinThreads(200, 200);
+            ThreadPool.SetMinThreads(100, 100);
 
             customerService = new CustomerService(this.output);
 

@@ -66,7 +66,7 @@ namespace MicroEnvironment.Messages
         private bool disposedValue;
 
         public string MessageName { get; }
-        public string ReplTo { get; set; }
+        public string ReplyTo { get; set; }
 
         private IMessageHubConnector<TRequest> HubRequestConnector { get; }
         private IMessageHubConnector<TResponse> HubResponseConnector { get; }
@@ -107,7 +107,14 @@ namespace MicroEnvironment.Messages
 
             HubResponseConnector.OnMessageHandle += HubResponseConnector_OnMessageHandle;
 
-            ReplTo = await this.HubResponseConnector.Subscribe(null);
+            ReplyTo = await this.HubResponseConnector.Subscribe(null);
+
+            this.HubResponseConnector.OnConnectionDown += HubResponseConnector_OnConnectionDown;
+        }
+
+        private void HubResponseConnector_OnConnectionDown(string reason)
+        {
+            ReplyTo = null;
         }
 
         public async Task<TResponse> Send(TRequest message)
@@ -122,7 +129,10 @@ namespace MicroEnvironment.Messages
             {
                 MessageId = Guid.NewGuid(),
                 Timestamp = DateTime.Now,
-                Headers = { { MicroEnvironmentMessageHeaders.REPLY_TO, ReplTo } }
+                Headers = { 
+                    { MicroEnvironmentMessageHeaders.REPLY_TO, ReplyTo ?? await this.HubResponseConnector.Subscribe(null)}, 
+                    { MicroEnvironmentMessageHeaders.CANCELLATION_TIMEOUT, Timeout.ToString() }
+                }
             };
 
             dictionary.TryAdd(microMessage.MessageId, tcs);

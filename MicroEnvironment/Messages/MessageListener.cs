@@ -143,6 +143,8 @@ namespace MicroEnvironment.Messages
             {
                 if (MessageName == messageName)
                 {
+                    var cancellationTimeout = int.Parse(envMessage.Headers[MicroEnvironmentMessageHeaders.CANCELLATION_TIMEOUT]);
+
                     await Task.Factory.StartNew(async (envMessage) =>
                     {
                         TResponse result = default;

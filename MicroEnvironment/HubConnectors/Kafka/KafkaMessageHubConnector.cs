@@ -20,7 +20,8 @@ namespace MicroEnvironment.HubConnectors.Kafka
         private IConsumer<byte[], byte[]> Consumer { get; set; }
 
         public event Func<string, MicroEnvironmentMessage<TMessage>, Task> OnMessageHandle;
-        
+        public event Action<string> OnConnectionDown;
+
         public KafkaMessageHubConnector(KafkaConfig config)
         {
             producerConfig = new ProducerConfig
